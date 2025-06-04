@@ -1,0 +1,50 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main # Trigger on pushes to the main branch
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+permissions:
+  contents: read # Needed for actions/checkout
+  pages: write   # Needed for actions/deploy-pages
+  id-token: write # Needed for actions/deploy-pages
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout your code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # Or your preferred Node.js version
+
+      - name: Install dependencies
+        run: npm install # Or yarn install
+
+      - name: Build project
+        run: npm run build # Or yarn build
+
+      - name: Upload production-ready assets (dist folder)
+        uses: actions/upload-pages-artifact@v3 # Use v3 for actions/upload-pages-artifact
+        with:
+          path: './dist' # The path to your built files (change to './build' for CRA)
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }} # This will show the deployed URL
+    runs-on: ubuntu-latest
+    needs: build # This job depends on the 'build' job completing successfully
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4 # Use v4 for actions/deploy-pages
